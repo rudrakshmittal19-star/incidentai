@@ -1,0 +1,43 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #080a0f;
+  --sidebar: #0c0e14;
+  --surface: #111318;
+  --overlay: #181b22;
+  --border: #1e2129;
+  --border-sub: #2a2e38;
+  --t1: #eef0f6;
+  --t2: #8b91a0;
+  --t3: #484e5c;
+  --accent: #3b82f6;
+  --accent-dim: rgba(59,130,246,0.12);
+  --accent-border: rgba(59,130,246,0.25);
+  --green: #22c55e;
+  --red: #ef4444;
+  --orange: #f97316;
+  --yellow: #eab308;
+  --font: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', monospace;
+}
+
+html, body { height: 100%; font-family: var(--font); background: var(--bg); color: var(--t1); }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-sub); border-radius: 99px; }
+
+/* Markdown rendering in chat */
+.prose { font-size: 14.5px; line-height: 1.75; color: var(--t1); }
+.prose p { margin-bottom: 0.6em; }
+.prose strong { font-weight: 600; color: var(--t1); }
+.prose em { color: var(--t2); font-style: italic; }
+.prose code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--overlay);
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border-sub);
+}
