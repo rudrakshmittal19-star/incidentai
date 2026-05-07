@@ -186,6 +186,13 @@ export default function ChatApp() {
 
     const userMsg: Message = { id: uid(), role: "user", text: text.trim(), timestamp: now() };
 
+    // Build history for multi-turn memory — get current messages before state update
+    const currentConv = conversations.find(c => c.id === convId);
+    const history = (currentConv?.messages ?? []).map(m => ({
+      role: m.role,
+      content: m.text,
+    }));
+
     setConversations(prev => prev.map(c => c.id === convId ? {
       ...c,
       title: c.title === "New conversation" ? text.slice(0, 36) + (text.length > 36 ? "…" : "") : c.title,
@@ -198,7 +205,7 @@ export default function ChatApp() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text.trim() }),
+        body: JSON.stringify({ message: text.trim(), history }),
       });
       const data = await res.json();
       const botMsg: Message = {
@@ -210,6 +217,8 @@ export default function ChatApp() {
       setConversations(prev => prev.map(c => c.id === convId ? {
         ...c, messages: [...c.messages, botMsg],
       } : c));
+      // Refresh stats after potential create/update
+      fetch("/api/incidents").then(r => r.json()).then(d => setStats(d.stats)).catch(() => {});
     } catch {
       const errMsg: Message = { id: uid(), role: "assistant", text: "⚠️ Network error. Please try again.", timestamp: now() };
       setConversations(prev => prev.map(c => c.id === convId ? { ...c, messages: [...c.messages, errMsg] } : c));
@@ -217,7 +226,7 @@ export default function ChatApp() {
       setLoading(false);
       inputRef.current?.focus();
     }
-  }, [activeId, loading, newConversation]);
+  }, [activeId, loading, newConversation, conversations]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
@@ -478,8 +487,8 @@ function SbButton({ children, onClick, icon, primary, accent, active, danger }: 
 
 function EmptyState({ onQuick }: { onQuick: (q: string) => void }) {
   const chips = [
-    "🔴 P1 incidents", "📂 Open tickets", "💻 SAP issues",
-    "⚠️ SLA at risk", "📊 Summary", "🕐 Latest incident",
+    "🔴 Show all P1 incidents", "👤 Who has most open tickets?",
+    "📊 Full summary", "⚠️ SLA at risk", "➕ Create a P1 SAP incident", "🏆 Which app has most issues?",
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 24px 40px", textAlign: "center", height: "100%" }}>
@@ -492,7 +501,7 @@ function EmptyState({ onQuick }: { onQuick: (q: string) => void }) {
         How can I help today?
       </div>
       <div style={{ fontSize: 14.5, color: "var(--t2)", maxWidth: 440, lineHeight: 1.7, marginBottom: 32 }}>
-        Ask me anything about your incidents — P1s, open tickets, SLA risk, or a full summary.
+        Ask me anything about your incidents in plain English. I can analyse data, spot trends, and even create or update incidents by chat.
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, justifyContent: "center", maxWidth: 520 }}>
         {chips.map(c => (
